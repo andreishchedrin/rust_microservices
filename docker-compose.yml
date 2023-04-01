@@ -12,6 +12,9 @@ services:
     build: ./rust_2
     # ports:
     #   - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
     links:
       - postgres
       - rust_1
@@ -28,8 +31,15 @@ services:
       PGDATA: /data/postgres
     ports:
       - "5432:5432"
+    networks:
+      - local_network
     volumes:
-       - ./postgres:/data/postgres   
+       - ./postgres:/data/postgres
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U test_user -d test_db'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   pgadmin:
     image: dpage/pgadmin4
     restart: always
