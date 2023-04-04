@@ -27,7 +27,6 @@ services:
       POSTGRES_DB: "test_db"
       POSTGRES_USER: "test_user"
       POSTGRES_PASSWORD: "test_pass"
-#      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
       PGDATA: /data/postgres
     ports:
       - "5432:5432"
@@ -49,7 +48,9 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@mail.com
       PGADMIN_DEFAULT_PASSWORD: admin
     volumes:
-      - ./pgadmin:/var/lib/pgadmin   
+      - ./pgadmin:/var/lib/pgadmin
+    networks:
+      - local_network
   rabbitmq:
     image: rabbitmq:3-management-alpine
     ports:

@@ -1,6 +1,7 @@
 extern crate postgres;
 
 use postgres::{Connection, ConnectParams, ConnectTarget, SslMode, UserInfo};
+use crate::models::message::Message;
 
 fn db_init() -> Connection {
     let params = ConnectParams {
@@ -39,7 +40,7 @@ pub fn init() -> Pg {
 }
 
 pub trait DB {
-    fn insert_message(&self, data: &Message);
+    fn insert_message(&self, message: &Message);
 }
 
 impl DB for Pg {
@@ -47,11 +48,4 @@ impl DB for Pg {
         self.conn.execute("INSERT INTO messages (data, sent_at) VALUES ($1, $2)",
                      &[&message.data, &message.sent_at]).unwrap();
     }
-}
-
-pub struct Message {
-    id: i64,
-    data: String,
-    created_at: String,
-    sent_at: String,
 }
