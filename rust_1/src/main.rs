@@ -68,12 +68,10 @@ async fn main() {
         // create arguments for basic_publish
         let args = BasicPublishArguments::new(exchange_name, routing_key);
 
-        let result = channel
+        channel
             .basic_publish(BasicProperties::default(), content, args)
             .await
             .unwrap();
-
-        print!("Publish result: {:?}", result)
     }
 
     // keep the `channel` and `connection` object from dropping before pub/sub is done.

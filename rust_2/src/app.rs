@@ -24,4 +24,8 @@ pub fn init<T: db::DB, U: consumer::Consumer>(db: T, consumer: U) -> App<T, U> {
     }
 }
 
-
+impl<T: db::DB, U: consumer::Consumer> App<T, U> {
+    pub async fn start_consumer(&self) {
+        self.consumer.consume_messages().await
+    }
+}
