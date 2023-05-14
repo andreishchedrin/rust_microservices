@@ -22,6 +22,7 @@ fn db_init() -> Connection {
 
     conn.execute("CREATE TABLE IF NOT EXISTS messages (
                        id              SERIAL PRIMARY KEY,
+                       consumer        VARCHAR NOT NULL,
                        data            VARCHAR NOT NULL,
                        created_at      TIMESTAMP DEFAULT NOW(),
                        sent_at         TIMESTAMP
@@ -45,7 +46,7 @@ pub trait DB {
 
 impl DB for Pg {
     fn insert_message(&self, message: &Message) {
-        self.conn.execute("INSERT INTO messages (data, sent_at) VALUES ($1, $2)",
-                     &[&message.data, &message.sent_at]).unwrap();
+        self.conn.execute("INSERT INTO messages (consumer, data, sent_at) VALUES ($1, $2, $3)",
+                     &[&message.consumer, &message.data, &message.sent_at]).unwrap();
     }
 }

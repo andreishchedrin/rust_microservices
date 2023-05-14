@@ -4,8 +4,14 @@ services:
     build: ./rust_1
     # ports:
     #   - "3000:3000"
-    # links:
-    #   - db
+    links:
+      - rabbitmq
+      - rust_2
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      rust_2:
+        condition: service_started
     networks:
       - local_network
   rust_2:
@@ -15,9 +21,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
     links:
       - postgres
-      - rust_1
+      - rabbitmq
     networks:
       - local_network  
   postgres:
@@ -53,6 +61,7 @@ services:
       - local_network
   rabbitmq:
     image: rabbitmq:3-management-alpine
+    restart: always
     ports:
         - 5672:5672
         - 15672:15672
@@ -63,6 +72,7 @@ services:
         - local_network 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
+    restart: always
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -72,6 +82,7 @@ services:
         - local_network 
   kafka:
     image: confluentinc/cp-kafka:latest
+    restart: always
     depends_on:
       - zookeeper
     ports:

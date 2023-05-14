@@ -1,6 +1,4 @@
 
-use app::consumer::Consumer;
-
 mod app;
 mod models;
 
@@ -9,8 +7,9 @@ mod models;
 async fn main() {
     println!("Start app");
     let db_instance = app::db::init();
+    let mapper_instance = app::mapper::RabbitMapper::new();
     let consumer_instance = app::consumer::Rabbit::new().await;
-    let app_instance = app::init(db_instance, consumer_instance);
+    let app_instance = app::init(db_instance, consumer_instance, mapper_instance);
 
     app_instance.start_consumer().await
 }

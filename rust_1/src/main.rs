@@ -4,6 +4,7 @@ use amqprs::{
     connection::{Connection, OpenConnectionArguments},
     BasicProperties,
 };
+use chrono::{DateTime, Utc};
 
 use tokio::time;
 
@@ -55,14 +56,17 @@ async fn main() {
     print!("Channel {channel} init complete!\n");
 
     for n in 1..101 {
+        let now: DateTime<Utc> = Utc::now();
         let content = String::from(
             r#"
         {
             "publisher": "example"
             "data": "Hello, amqprs! [test]"
+            "sent_at": "[time_now]"
         }
     "#,
         ).replace("test", &n.to_string())
+            .replace("time_now", now.to_rfc3339())
             .into_bytes();
 
         // create arguments for basic_publish
@@ -80,4 +84,5 @@ async fn main() {
     // explicitly close
     channel.close().await.unwrap();
     connection.close().await.unwrap();
+    print!("Send messages complete!\n");
 }

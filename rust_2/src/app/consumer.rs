@@ -5,13 +5,15 @@ use amqprs::{
     consumer::DefaultConsumer,
 };
 use async_trait::async_trait;
+use tokio::sync::mpsc::Sender;
 use tokio::sync::Notify;
 use tokio::time;
 use std::str;
+use std::clone::Clone;
 
 #[async_trait]
 pub trait Consumer {
-    async fn consume_messages(&self);
+    async fn consume_messages(&self, sender: Sender<&str>);
 }
 
 pub struct Rabbit {
@@ -75,7 +77,7 @@ impl Rabbit {
 
 #[async_trait]
 impl Consumer for Rabbit {
-    async fn consume_messages(&self) {
+    async fn consume_messages(&self, sender: Sender<&str>) {
         let args = BasicConsumeArguments::new(
             &self.queue_name,
             "tasks_pub_sub"
@@ -85,16 +87,18 @@ impl Consumer for Rabbit {
 
         // you will need to run this in `tokio::spawn` or `tokio::task::spawn_blocking`
         // if you want to do other things in parallel of message consumption.
-        tokio::spawn(async move {
-            while let Some(msg) = messages_rx.recv().await {
-                let r = msg.content.unwrap();
-                let s = match str::from_utf8(&r) {
-                    Ok(v) =>  v,
-                    Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
-                };
-                print!("Result {:?}\n", s);
-            }
-        });
+        // tokio::spawn(async move {
+        while let Some(msg) = messages_rx.recv().await {
+            let r = msg.content.unwrap();
+            let s = match str::from_utf8(&r) {
+                Ok(v) =>  v,
+                Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
+            };
+
+            print!("Result {:?}\n", s);
+            sender.send(s).await;
+        }
+        // });
 
         // Only needed when `messages_rx.recv().await` hasn't yet returned `None`
         if let Err(e) = self.channel.basic_cancel(BasicCancelArguments::new(&ctag)).await {
@@ -113,8 +117,7 @@ pub struct Kafka {
 
 #[async_trait]
 impl Consumer for Kafka {
-    async fn consume_messages(&self) {
+    async fn consume_messages(&self, sender: Sender<&str>) {
         todo!()
     }
 }
-
